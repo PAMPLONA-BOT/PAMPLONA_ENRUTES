@@ -419,75 +419,51 @@ body {
   const formUrl = 'https://script.google.com/macros/s/AKfycbxhL9z2Ja7I0QFHn3nReY2NVR1AIn1_SJtei9FIifBLI7vy8PWz0cv_6Dr1Y61z9blcJA/exec';
 
   function enviarReporte(tipo) {
-  const operario = document.getElementById('operario').value;
-  const ciclo = document.getElementById('ciclo').value;
-  const seccion = document.getElementById('seccion').value;
-  const via = document.getElementById('via').value;
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const mapaCod = {
+          "0": "░", "1": "▒", "2": "▓", "3": "█", "4": "▌",
+          "5": "▐", "6": "▀", "7": "▄", "8": "■", "9": "□",
+          ".": "◦", ",": "◘", "-": "◄"
+        };
+        function codificarCoord(c) {
+          return [...c].map(l => mapaCod[l] || '').join('');
+        }
+        const lat = pos.coords.latitude.toFixed(7);
+        const lon = pos.coords.longitude.toFixed(7);
+        const codificado = codificarCoord(lat + "," + lon);
 
-  const fechaActual = new Date();
-  const fecha = fechaActual.toLocaleDateString();
-  const hora = fechaActual.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const operario = document.getElementById("operario").value;
+        const ciclo = document.getElementById("ciclo").value;
+        const seccion = document.getElementById("seccion").value;
+        const via = document.getElementById("via").value;
+        const fecha = new Date().toLocaleDateString();
+        const hora = new Date().toLocaleTimeString();
 
-  // Validación
-  if ((tipo === 'salida' || tipo === 'regreso') && (!operario || !ciclo || !seccion || !via)) {
-    alert("Por favor complete todos los campos.");
-    return;
-  }
+        let mensaje = "";
+        if (tipo === 'salida') mensaje = "🚶‍♂️ Traslado de salida";
+        if (tipo === 'regreso') mensaje = "↩️ Traslado de regreso";
+        if (tipo === 'inicio') mensaje = "🔧 Inicio de labor";
+        if (tipo === 'fin') mensaje = "✅ Fin de labor";
 
-  if ((tipo === 'inicio' || tipo === 'fin') && (!operario || !via)) {
-    alert("Por favor complete los campos de Operario y Vía.");
-    return;
-  }
+        const mensajeFinal = `${mensaje}
+📅 Fecha: ${fecha}
+🕒 Hora: ${hora}
+${codificado}
+👷‍♂️ Operario: ${operario}
+🔁 Ciclo: ${ciclo}
+📍 Sección: ${seccion}
+🛣️ Vía: ${via}`;
 
-  // Crear mensaje para WhatsApp
-  let encabezado = "";
-  if (tipo === 'salida') encabezado = "🚗 *TRASLADO DE SALIDA*";
-  else if (tipo === 'regreso') encabezado = "🚙 *TRASLADO DE REGRESO*";
-  else if (tipo === 'inicio') encabezado = "🟢 *REPORTE PRIMERA LECTURA*";
-  else if (tipo === 'fin') encabezado = "🔴 *FIN DE LABORES*";
-
-  let mensaje = `${encabezado}\n📅 Fecha: ${fecha}\n🕒 Hora: ${hora}\n👷‍♂️ Operario: ${operario}`;
-  if (tipo === 'salida' || tipo === 'regreso') {
-    mensaje += `\n📦 Ciclo: ${ciclo}\n📍 Sección: ${seccion}\n📌 Vía: ${via}`;
-  } else {
-    mensaje += `\n📌 ${tipo === 'inicio' ? 'Usuario' : 'Destino'}: ${via}`;
-  }
-
-  // Enviar a WhatsApp
-  const mensajeCodificado = encodeURIComponent(mensaje);
-  const link = `https://wa.me/?text=${mensajeCodificado}`;
-  const ventana = window.open(link, "_blank");
-  if (!ventana) {
-    alert("No se pudo abrir WhatsApp. Por favor, habilita las ventanas emergentes.");
-  }
-
-  // ✅ Solo enviar a hoja de cálculo si es "salida" o "fin"
-  if (tipo === 'salida' || tipo === 'fin') {
-    fetch('https://script.google.com/macros/s/AKfycbxhL9z2Ja7I0QFHn3nReY2NVR1AIn1_SJtei9FIifBLI7vy8PWz0cv_6Dr1Y61z9blcJA/exec', {
-      method: 'POST',
-      body: JSON.stringify({
-        fecha,
-        hora,
-        operario,
-        ciclo: tipo === 'salida' ? ciclo : "",     // Ciclo solo aplica en salida
-        seccion: tipo === 'salida' ? seccion : "", // Sección solo aplica en salida
-        via,
-        tipo
-      }),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }).then(response => {
-      if (response.ok) {
-        alert("¡Reporte enviado exitosamente!");
-      } else {
-        throw new Error("Error al enviar los datos.");
-      }
-    }).catch(async error => {
-      alert("Hubo un problema al enviar los datos:\n" + error.message);
-      console.error("Error completo:", error);
-    });
-  }
+        const url = "https://wa.me/?text=" + encodeURIComponent(mensajeFinal);
+        window.open(url, "_blank");
+        document.getElementById("via").value = "";
+      }, () => {
+        alert("No se pudo obtener la ubicación.");
+      });
+    } else {
+      alert("Tu navegador no permite geolocalización.");
+    }
 }
 
 
