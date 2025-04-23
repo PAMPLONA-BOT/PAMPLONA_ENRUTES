@@ -321,9 +321,9 @@ window.onload = () => {
 <h1>REGIONAL PAMPLONA</h1>
 <button class="btn" onclick="mostrarFormulario()">REPORTE DIARIO</button>
 <button class="btn" onclick="mostrarInterfazSecundaria()">VALIDADOR USUARIO</button>
-<button class="btn" onclick="irAUrl('https://script.google.com/macros/s/AKfycbw2z6rVlBqlPU0drL9Rus_p_ORjVfl8iGQBL-gupoDio4Fq3ElbrqUILguiAtLYWpJZfg/exec', 'revisionEjecutada')">REVISIONES EJECUTADAS</button>
-<button class="btn" onclick="irAUrl('https://script.google.com/macros/s/AKfycbw-YQTef8VFk4KPc7S8iPnmMXxzaXLegyH8tLk-TqxNwROMi-mRqiUh8LwhQ2J1RbXFAA/exec', 'pendienteDescargas')">CONSULTA DE RUTA Y KML</button>
-<button class="btn" onclick="irAUrl('https://www.google.com', 'paginaPrueba')">ERRORES</button>
+<button class="btn" onclick="abrirEnNavegador('https://script.google.com/macros/s/AKfycbw2z6rVlBqlPU0drL9Rus_p_ORjVfl8iGQBL-gupoDio4Fq3ElbrqUILguiAtLYWpJZfg/exec')">REVISIONES EJECUTADAS</button>
+<button class="btn" onclick="abrirEnNavegador('https://script.google.com/macros/s/AKfycbw-YQTef8VFk4KPc7S8iPnmMXxzaXLegyH8tLk-TqxNwROMi-mRqiUh8LwhQ2J1RbXFAA/exec')">CONSULTA DE RUTA Y KML</button>
+<button class="btn" onclick="abrirEnNavegador('https://www.google.com')">ERRORES</button>
 </div><!-- Vista de formulario --><div class="container hidden" id="vistaReporte">
 <h2>Reporte Diario</h2>
 <div class="form-group">
@@ -500,8 +500,7 @@ ${document.querySelector("label[for=via]").textContent.replace(":", "")}: ${via}
     }
 
     ultimoMensajeGenerado = mensaje;
-    const url = "https://wa.me/?text=" + encodeURIComponent(mensaje);
-    window.open(url, "_blank");
+    console.log("Mensaje generado, listo para copiar.");
 
     document.getElementById("via").value = "";
   }, () => {
@@ -691,4 +690,20 @@ function mostrarInterfazPrincipal() {
     document.getElementById('interfazPrincipal').style.display = 'block';
 }
 </script>
-</body></html>
+
+
+
+<script>
+function abrirEnNavegador(url) {
+  const a = document.createElement('a');
+  a.href = url;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+</script>
+</body>
+
+</html>
