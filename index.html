@@ -419,51 +419,69 @@ body {
   const formUrl = 'https://script.google.com/macros/s/AKfycbxhL9z2Ja7I0QFHn3nReY2NVR1AIn1_SJtei9FIifBLI7vy8PWz0cv_6Dr1Y61z9blcJA/exec';
 
   function enviarReporte(tipo) {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const mapaCod = {
-          "0": "░", "1": "▒", "2": "▓", "3": "█", "4": "▌",
-          "5": "▐", "6": "▀", "7": "▄", "8": "■", "9": "□",
-          ".": "◦", ",": "◘", "-": "◄"
-        };
-        function codificarCoord(c) {
-          return [...c].map(l => mapaCod[l] || '').join('');
-        }
-        const lat = pos.coords.latitude.toFixed(7);
-        const lon = pos.coords.longitude.toFixed(7);
-        const codificado = codificarCoord(lat + "," + lon);
+  const operario = document.getElementById("operario").value;
+  const ciclo = document.getElementById("ciclo").value;
+  const seccion = document.getElementById("seccion").value;
+  const via = document.getElementById("via").value.trim();
 
-        const operario = document.getElementById("operario").value;
-        const ciclo = document.getElementById("ciclo").value;
-        const seccion = document.getElementById("seccion").value;
-        const via = document.getElementById("via").value;
-        const fecha = new Date().toLocaleDateString();
-        const hora = new Date().toLocaleTimeString();
+  if ((tipo === "salida" || tipo === "regreso") && (!operario || !ciclo || !seccion || !via)) {
+    alert("Por favor complete los campos: Operario, Ciclo, Sección y Vía.");
+    return;
+  }
 
-        let mensaje = "";
-        if (tipo === 'salida') mensaje = "🚶‍♂️ Traslado de salida";
-        if (tipo === 'regreso') mensaje = "↩️ Traslado de regreso";
-        if (tipo === 'inicio') mensaje = "🔧 Inicio de labor";
-        if (tipo === 'fin') mensaje = "✅ Fin de labor";
+  if ((tipo === "inicio" || tipo === "fin") && (!operario || !via)) {
+    alert("Por favor complete los campos: Operario y Vía.");
+    return;
+  }
 
-        const mensajeFinal = `${mensaje}
+  if (!navigator.geolocation) {
+    alert("Tu navegador no permite geolocalización.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(pos => {
+    const mapaCod = {
+      "0": "░", "1": "▒", "2": "▓", "3": "█", "4": "▌",
+      "5": "▐", "6": "▀", "7": "▄", "8": "■", "9": "□",
+      ".": "◦", ",": "◘", "-": "◄"
+    };
+    const codificarCoord = c => [...c].map(l => mapaCod[l] || '').join('');
+    const lat = pos.coords.latitude.toFixed(7);
+    const lon = pos.coords.longitude.toFixed(7);
+    const codificado = codificarCoord(lat + "," + lon);
+
+    const fecha = new Date().toLocaleDateString();
+    const hora = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let titulo = "";
+    if (tipo === "salida") titulo = "🚶‍♂️ Traslado de salida";
+    if (tipo === "regreso") titulo = "↩️ Traslado de regreso";
+    if (tipo === "inicio") titulo = "🔧 Inicio de labor";
+    if (tipo === "fin") titulo = "✅ Fin de labor";
+
+    let mensaje = `${titulo}
 📅 Fecha: ${fecha}
 🕒 Hora: ${hora}
 ${codificado}
-👷‍♂️ Operario: ${operario}
+👷‍♂️ Operario: ${operario}`;
+
+    if (tipo === "salida" || tipo === "regreso") {
+      mensaje += `
 🔁 Ciclo: ${ciclo}
 📍 Sección: ${seccion}
 🛣️ Vía: ${via}`;
-
-        const url = "https://wa.me/?text=" + encodeURIComponent(mensajeFinal);
-        window.open(url, "_blank");
-        document.getElementById("via").value = "";
-      }, () => {
-        alert("No se pudo obtener la ubicación.");
-      });
     } else {
-      alert("Tu navegador no permite geolocalización.");
+      mensaje += `
+📌 Vía: ${via}`;
     }
+
+    const url = "https://wa.me/?text=" + encodeURIComponent(mensaje);
+    window.open(url, "_blank");
+
+    document.getElementById("via").value = "";
+  }, () => {
+    alert("No se pudo obtener la ubicación.");
+  });
 }
 
 
